@@ -9,6 +9,7 @@ import java.text.ParseException;
 
 import Masks.CPFMask;
 import db.DB;
+import db.DbException;
 
 public class Program {
 
@@ -22,6 +23,8 @@ public class Program {
 		try {
 			conn = DB.getConnection();
 			st = conn.createStatement();
+			
+			conn.setAutoCommit(false);
 			
 			rs = st.executeQuery("SELECT * FROM aluno");
 			System.out.println("CPF            | NOME");
@@ -65,19 +68,26 @@ public class Program {
 //				System.out.println(CPFMask.CPFFormat(rs.getString("cpf")) + ", " + rs.getString("nome"));
 //			}
 //			
-		ps = conn.prepareStatement("UPDATE aluno "
-				+ "SET bolsista = ? "
-				+ "WHERE (cpf = ?) ", Statement.RETURN_GENERATED_KEYS);
-		ps.setString(1, "ATLETA");
-		ps.setString(2, "55555555555");
-		
-		int rowsAffected = ps.executeUpdate();
-		System.out.println("Rows affected: "+rowsAffected);
+//		ps = conn.prepareStatement("UPDATE aluno "
+//				+ "SET bolsista = ? "
+//				+ "WHERE (cpf = ?) ", Statement.RETURN_GENERATED_KEYS);
+//		ps.setString(1, "ATLETA");
+//		ps.setString(2, "55555555555");
+//		
+//		int rowsAffected = ps.executeUpdate();
+//		System.out.println("Rows affected: "+rowsAffected);
 		
 		
 		}
 		catch (SQLException e) {
-			e.printStackTrace();
+			try {
+				conn.rollback();
+				throw new DbException("Transaction rolled back! Caused by: "+e.getMessage());
+			}
+			catch (SQLException ex) {
+				throw new DbException("Error trying to rollback! Caused by: "+ex.getMessage());
+		
+			}
 		}
 		
 		finally {
