@@ -5,37 +5,36 @@ import java.io.Serializable;
 public class Aluno_Disciplina implements Serializable{
 
 	private static final long serialVersionUID = 1L;
-	private String alunoId;
-	private Integer disciplinaId;
+	private Aluno_Disciplina_PK id = new Aluno_Disciplina_PK();
 	private Boolean ativo;
 	
 	public Aluno_Disciplina() {
 		
 	}
-
-	public Aluno_Disciplina(String alunoId, Integer disciplinaId, Boolean ativo) {
+	
+	public Aluno_Disciplina(Aluno aluno, Disciplina disciplina, Boolean ativo) {
 		super();
-		this.alunoId = alunoId;
-		this.disciplinaId = disciplinaId;
+		id.setAluno(aluno);
+		id.setDisciplina(disciplina);
 		this.ativo = ativo;
 	}
-
-	public String getAlunoId() {
-		return alunoId;
+	
+	public Aluno getAluno() {
+		return id.getAluno();
 	}
-
-	public void setAlunoId(String alunoId) {
-		this.alunoId = alunoId;
+	
+	public void setAluno(Aluno aluno) {
+		id.setAluno(aluno);
 	}
-
-	public Integer getDisciplinaId() {
-		return disciplinaId;
+	
+	public Disciplina getDisciplina() {
+		return id.getDisciplina();
 	}
-
-	public void setDisciplinaId(Integer disciplinaId) {
-		this.disciplinaId = disciplinaId;
+	
+	public void setDisciplina(Disciplina disciplina) {
+		id.setDisciplina(disciplina);
 	}
-
+	
 	public Boolean getAtivo() {
 		return ativo;
 	}
@@ -48,8 +47,7 @@ public class Aluno_Disciplina implements Serializable{
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((alunoId == null) ? 0 : alunoId.hashCode());
-		result = prime * result + ((disciplinaId == null) ? 0 : disciplinaId.hashCode());
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
 		return result;
 	}
 
@@ -62,21 +60,11 @@ public class Aluno_Disciplina implements Serializable{
 		if (getClass() != obj.getClass())
 			return false;
 		Aluno_Disciplina other = (Aluno_Disciplina) obj;
-		if (alunoId == null) {
-			if (other.alunoId != null)
+		if (id == null) {
+			if (other.id != null)
 				return false;
-		} else if (!alunoId.equals(other.alunoId))
-			return false;
-		if (disciplinaId == null) {
-			if (other.disciplinaId != null)
-				return false;
-		} else if (!disciplinaId.equals(other.disciplinaId))
+		} else if (!id.equals(other.id))
 			return false;
 		return true;
 	}
-
-	@Override
-	public String toString() {
-		return "Aluno_Disciplina [alunoId=" + alunoId + ", disciplinaId=" + disciplinaId + ", ativo=" + ativo + "]";
-	}	
 }
