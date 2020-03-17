@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import db.DB;
@@ -74,8 +75,31 @@ private Connection conn;
 	}
 	@Override
 	public List<Object> findAll() {
-		// TODO Auto-generated method stub
-		return null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		try {
+			ps = conn.prepareStatement(
+					"SELECT * "
+					+ "FROM escola.disciplina ");
+
+			rs = ps.executeQuery();
+			List<Object> disciplinas = new ArrayList<>();
+			
+			while(rs.next()) {
+				Disciplina disciplina = instantiateDisciplina(rs);
+				disciplinas.add(disciplina);
+				
+			}
+			return disciplinas;
+		}
+		
+		catch(SQLException e){
+			throw new DbException(e.getMessage());
+		}
+		finally {
+			DB.closeStatement(ps);
+			DB.closeResultSet(rs);
+		}
 	}
 
 }

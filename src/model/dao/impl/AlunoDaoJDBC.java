@@ -130,8 +130,39 @@ public class AlunoDaoJDBC implements Dao{
 	
 	@Override
 	public List<Object> findAll() {
-		// TODO Auto-generated method stub
-		return null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		try {
+			ps = conn.prepareStatement(
+					"SELECT escola.aluno.*, escola.turma.* "
+					+ "FROM escola.aluno INNER JOIN escola.turma ON escola.aluno.turma = escola.turma.id_turma ");
+			
+			rs = ps.executeQuery();
+			Map<Integer, Turma> map = new HashMap<>();
+			List<Object> alunos = new ArrayList<>();
+			
+			while(rs.next()) {
+				
+				Turma localturma = map.get(rs.getInt("id_turma"));
+				
+				if(localturma == null) {
+					localturma = instantiateTurma(rs);
+					map.put(rs.getInt("id_turma"), localturma);
+				}
+				
+				Bolsista aluno = instantiateBolsista(rs, localturma);
+				alunos.add(aluno);
+			}
+			return alunos;
+		}
+		
+		catch(SQLException e){
+			throw new DbException(e.getMessage());
+		}
+		finally {
+			DB.closeStatement(ps);
+			DB.closeResultSet(rs);
+		}
 	}
 
 }

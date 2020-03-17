@@ -4,7 +4,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import db.DB;
 import db.DbException;
@@ -126,8 +129,57 @@ public class Aluno_DisciplinaDaoJDBC implements Dao {
 
 	@Override
 	public List<Object> findAll() {
-		// TODO Auto-generated method stub
-		return null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		try {
+			ps = conn.prepareStatement(
+					"SELECT * "
+					+ "FROM escola.aluno_disciplina INNER JOIN escola.aluno ON escola.aluno_disciplina.aluno = escola.aluno.cpf "
+					+ "INNER JOIN escola.disciplina ON escola.aluno_disciplina.disciplina = escola.disciplina.id_disciplina ");
+			
+			rs = ps.executeQuery();
+			Map<Integer, Turma> mapTurma = new HashMap<>();
+			Map<String, Aluno> mapAluno = new HashMap<>();
+			Map<Integer, Disciplina> mapDisciplina = new HashMap<>();
+			List<Object> alunosDisciplinas = new ArrayList<>();
+			
+			while(rs.next()) {
+				
+				Turma turma = mapTurma.get(rs.getInt("id_turma"));
+				
+				if(turma == null) {
+					turma = instantiateTurma(rs);
+					mapTurma.put(rs.getInt("id_turma"), turma);
+				}
+				
+				Aluno aluno = mapAluno.get(rs.getString("cpf"));
+				
+				if(aluno == null) {
+					aluno = instantiateAluno(rs, turma);
+					mapAluno.put(rs.getString("cpf"), aluno);
+				}
+				
+				Disciplina disciplina = mapDisciplina.get(rs.getInt("id_disciplina"));
+				
+				if(disciplina == null) {
+					disciplina = instantiateDisciplina(rs);
+					mapDisciplina.put(rs.getInt("id_disciplina"), disciplina);
+				}
+				
+				Aluno_Disciplina alunoDisciplina = instantiateAlunoDisciplina(rs, aluno, disciplina);
+				alunosDisciplinas.add(alunoDisciplina);
+
+			}
+			return alunosDisciplinas;
+		}
+		
+		catch(SQLException e){
+			throw new DbException(e.getMessage());
+		}
+		finally {
+			DB.closeStatement(ps);
+			DB.closeResultSet(rs);
+		}
 	}
 
 }

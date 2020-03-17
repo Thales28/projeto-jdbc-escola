@@ -5,7 +5,6 @@ import java.util.List;
 import model.dao.DaoFactory;
 import model.dao.impl.AlunoDaoJDBC;
 import model.dao.impl.TurmaDaoJDBC;
-import model.entities.Aluno;
 import model.entities.Bolsista;
 import model.entities.Turma;
 
@@ -23,8 +22,18 @@ public class Program {
 		List<Bolsista> alunos = daoAluno.findByTurma(turma);
 		for(Bolsista aluno : alunos) {
 			System.out.println(aluno);
+			System.out.println();
 		}
-		
 		System.out.println("______________________________");
+		
+		System.out.println("=== FIND ALL ALUNOS");
+		List<Object> allAlunos = daoAluno.findAll();
+		for(Object aluno : allAlunos) {
+			System.out.println(aluno);
+			System.out.println();
+		}
+		System.out.println("______________________________");
+		
+		
 	}
 }
