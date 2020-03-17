@@ -59,32 +59,13 @@ public class Aluno_DisciplinaDaoJDBC implements Dao {
 			
 			if(rs.next()) {
 				
-				Aluno_Disciplina alunoDisciplina = new Aluno_Disciplina();
-				Aluno aluno = new Aluno();
-				Disciplina disciplina = new Disciplina();
-				Turma turma = new Turma();
+				Turma turma = instantiateTurma(rs);
 				
-				turma.setId(rs.getInt("id_turma"));
-				turma.setTurno(rs.getString("turno"));
+				Aluno aluno = instantiateAluno(rs, turma);
 				
-				aluno.setCpf(rs.getString("cpf"));
-				aluno.setCreditos(rs.getDouble(9));
-				aluno.setEndereco(rs.getString("endereco"));
-				aluno.setNome(rs.getString(5));
-				aluno.setTurma(turma);
-				aluno.setValorMensalidade(rs.getDouble("valorMensalidade"));
+				Disciplina disciplina = instantiateDisciplina(rs);
 				
-				disciplina.setCreditos(rs.getDouble(13));
-				disciplina.setId(rs.getInt("id_disciplina"));
-				disciplina.setNome(rs.getString(12));
-				
-				alunoDisciplina.setAluno(aluno);
-				Boolean ativo = false;
-				if(rs.getInt("ativo") == 1) {
-					ativo = true;
-				}
-				alunoDisciplina.setAtivo(ativo);
-				alunoDisciplina.setDisciplina(disciplina);
+				Aluno_Disciplina alunoDisciplina = instantiateAlunoDisciplina(rs, aluno, disciplina);
 
 				return alunoDisciplina;
 			}
@@ -98,6 +79,49 @@ public class Aluno_DisciplinaDaoJDBC implements Dao {
 			DB.closeStatement(ps);
 			DB.closeResultSet(rs);
 		}
+	}
+
+	private Aluno_Disciplina instantiateAlunoDisciplina(ResultSet rs, Aluno aluno, Disciplina disciplina) throws SQLException {
+		Aluno_Disciplina alunoDisciplina = new Aluno_Disciplina();
+		alunoDisciplina.setAluno(aluno);
+		Boolean ativo = false;
+		if(rs.getInt("ativo") == 1) {
+			ativo = true;
+		}
+		alunoDisciplina.setAtivo(ativo);
+		alunoDisciplina.setDisciplina(disciplina);
+		return alunoDisciplina;
+	}
+
+	private Aluno instantiateAluno(ResultSet rs, Turma turma) throws SQLException {
+		Aluno aluno = new Aluno();
+		aluno.setCpf(rs.getString("cpf"));
+		aluno.setCreditos(rs.getDouble(9));
+		aluno.setEndereco(rs.getString("endereco"));
+		aluno.setNome(rs.getString(5));
+		aluno.setTurma(turma);
+		aluno.setValorMensalidade(rs.getDouble("valorMensalidade"));
+		Boolean isBolsista = false;
+		if(rs.getString("bolsista") != null) {
+			isBolsista = true;
+		}
+		aluno.setBolsista(isBolsista);
+		return aluno;
+	}
+
+	private Disciplina instantiateDisciplina(ResultSet rs) throws SQLException {
+		Disciplina disciplina = new Disciplina();
+		disciplina.setCreditos(rs.getDouble(13));
+		disciplina.setId(rs.getInt("id_disciplina"));
+		disciplina.setNome(rs.getString(12));
+		return disciplina;
+	}
+
+	private Turma instantiateTurma(ResultSet rs) throws SQLException {
+		Turma turma = new Turma();
+		turma.setId(rs.getInt("id_turma"));
+		turma.setTurno(rs.getString("turno"));
+		return turma;
 	}
 
 	@Override

@@ -48,10 +48,7 @@ private Connection conn;
 			rs = ps.executeQuery();
 			
 			if(rs.next()) {
-				Disciplina disciplina = new Disciplina();
-				disciplina.setId(rs.getInt("id_disciplina"));
-				disciplina.setNome(rs.getString("nome"));
-				disciplina.setCreditos(rs.getDouble("creditos"));
+				Disciplina disciplina = instantiateDisciplina(rs);
 
 				return disciplina;
 			}
@@ -67,6 +64,14 @@ private Connection conn;
 		}
 	}
 
+	private Disciplina instantiateDisciplina(ResultSet rs) throws SQLException {
+		Disciplina disciplina = new Disciplina();
+		disciplina.setId(rs.getInt("id_disciplina"));
+		disciplina.setNome(rs.getString("nome"));
+		disciplina.setCreditos(rs.getDouble("creditos"));
+		
+		return disciplina;
+	}
 	@Override
 	public List<Object> findAll() {
 		// TODO Auto-generated method stub

@@ -48,9 +48,7 @@ public class TurmaDaoJDBC implements Dao{
 			rs = ps.executeQuery();
 			
 			if(rs.next()) {
-				Turma turma = new Turma();
-				turma.setId(rs.getInt("id_turma"));
-				turma.setTurno(rs.getString("turno"));
+				Turma turma = instantiateTurma(rs);
 				return turma;
 			}
 			return null;
@@ -65,6 +63,12 @@ public class TurmaDaoJDBC implements Dao{
 		}
 	}
 
+	private Turma instantiateTurma(ResultSet rs) throws SQLException {
+		Turma turma = new Turma();
+		turma.setId(rs.getInt("id_turma"));
+		turma.setTurno(rs.getString("turno"));
+		return turma;
+	}
 	@Override
 	public List<Object> findAll() {
 		// TODO Auto-generated method stub
