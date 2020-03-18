@@ -39,34 +39,33 @@ public class DisciplinaDaoJDBC implements Dao {
 			if (disciplina2 != null) {
 				throw new DbIntegrityException("Id já inserido");
 			}
-		} else {
-			PreparedStatement ps = null;
-			try {
-				ps = conn.prepareStatement(
-						"INSERT INTO disciplina " + "(id_disciplina, nome, creditos) " + "VALUES " + "(?, ?, ?) ",
-						Statement.RETURN_GENERATED_KEYS);
-				ps.setInt(1, disciplina.getId());
-				ps.setString(2, disciplina.getNome());
-				ps.setDouble(3, disciplina.getCreditos());
+		}
+		PreparedStatement ps = null;
+		try {
+			ps = conn.prepareStatement(
+					"INSERT INTO disciplina " + "(id_disciplina, nome, creditos) " + "VALUES " + "(?, ?, ?) ",
+					Statement.RETURN_GENERATED_KEYS);
+			ps.setInt(1, disciplina.getId());
+			ps.setString(2, disciplina.getNome());
+			ps.setDouble(3, disciplina.getCreditos());
 
-				int rowsAffected = ps.executeUpdate();
+			int rowsAffected = ps.executeUpdate();
 
-				if (rowsAffected > 0) {
-					ResultSet rs = ps.getGeneratedKeys();
-					if (rs.next()) {
-						int id = rs.getInt(1);
-						disciplina.setId(id);
-					}
-					DB.closeResultSet(rs);
-				} else {
-					throw new DbException("Erro inesperado! Nenhuma linha foi afetada!");
+			if (rowsAffected > 0) {
+				ResultSet rs = ps.getGeneratedKeys();
+				if (rs.next()) {
+					int id = rs.getInt(1);
+					disciplina.setId(id);
 				}
-
-			} catch (SQLException e) {
-				throw new DbException(e.getMessage());
-			} finally {
-				DB.closeStatement(ps);
+				DB.closeResultSet(rs);
+			} else {
+				throw new DbException("Erro inesperado! Nenhuma linha foi afetada!");
 			}
+
+		} catch (SQLException e) {
+			throw new DbException(e.getMessage());
+		} finally {
+			DB.closeStatement(ps);
 		}
 
 	}
@@ -88,36 +87,35 @@ public class DisciplinaDaoJDBC implements Dao {
 		Disciplina disciplina2 = (Disciplina) dao.findById(disciplina.getId());
 		if (disciplina2 == null) {
 			throw new DbIntegrityException("Disciplina não encontrada");
-		} else {
-			try {
-				ps = conn.prepareStatement(
-						"UPDATE disciplina " + "SET creditos = ?, nome = ? " + "WHERE id_disciplina = ?");
+		}
+		try {
+			ps = conn
+					.prepareStatement("UPDATE disciplina " + "SET creditos = ?, nome = ? " + "WHERE id_disciplina = ?");
 
-				ps.setDouble(1, disciplina.getCreditos());
-				ps.setString(2, disciplina.getNome());
-				ps.setInt(3, disciplina.getId());
+			ps.setDouble(1, disciplina.getCreditos());
+			ps.setString(2, disciplina.getNome());
+			ps.setInt(3, disciplina.getId());
 
-				ps.executeUpdate();
+			ps.executeUpdate();
 
-				Aluno_DisciplinaDaoJDBC dao2 = DaoFactory.createAluno_Disciplina();
-				List<Object> alunosDisciplinas = dao2.findAll();
-				Iterator<Object> ite = alunosDisciplinas.iterator();
-				while (ite.hasNext()) {
-					Aluno_Disciplina aux = (Aluno_Disciplina) ite.next();
-					if (aux.getAtivo()) {
+			Aluno_DisciplinaDaoJDBC dao2 = DaoFactory.createAluno_Disciplina();
+			List<Object> alunosDisciplinas = dao2.findAll();
+			Iterator<Object> ite = alunosDisciplinas.iterator();
+			while (ite.hasNext()) {
+				Aluno_Disciplina aux = (Aluno_Disciplina) ite.next();
+				if (aux.getAtivo()) {
 
-						AlunoDaoJDBC daoAluno = DaoFactory.createAluno();
-						Bolsista bol = (Bolsista) daoAluno.findById(aux.getAluno().getCpf());
-						Double diferencaCreditos = (disciplina2.getCreditos() - disciplina.getCreditos());
-						daoAluno.updateCreditos(bol, bol.getCreditos() + diferencaCreditos);
-					}
+					AlunoDaoJDBC daoAluno = DaoFactory.createAluno();
+					Bolsista bol = (Bolsista) daoAluno.findById(aux.getAluno().getCpf());
+					Double diferencaCreditos = (disciplina2.getCreditos() - disciplina.getCreditos());
+					daoAluno.updateCreditos(bol, bol.getCreditos() + diferencaCreditos);
 				}
-
-			} catch (SQLException e) {
-				throw new DbException(e.getMessage());
-			} finally {
-				DB.closeStatement(ps);
 			}
+
+		} catch (SQLException e) {
+			throw new DbException(e.getMessage());
+		} finally {
+			DB.closeStatement(ps);
 		}
 
 	}
@@ -132,7 +130,8 @@ public class DisciplinaDaoJDBC implements Dao {
 		Aluno_DisciplinaDaoJDBC daoAlunoDisciplina = DaoFactory.createAluno_Disciplina();
 		List<Aluno_Disciplina> lista = daoAlunoDisciplina.findByDisciplina(disciplina.getId());
 		for (Aluno_Disciplina alunoDisciplina : lista) {
-			Aluno_Disciplina AL = new Aluno_Disciplina(alunoDisciplina.getAluno(), alunoDisciplina.getDisciplina(), false);
+			Aluno_Disciplina AL = new Aluno_Disciplina(alunoDisciplina.getAluno(), alunoDisciplina.getDisciplina(),
+					false);
 			daoAlunoDisciplina.update(AL);
 		}
 		try {

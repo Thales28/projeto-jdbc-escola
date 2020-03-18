@@ -172,6 +172,7 @@ public class Aluno_DisciplinaDaoJDBC implements Dao {
 			ps = conn.prepareStatement("SELECT * "
 					+ "FROM escola.aluno_disciplina INNER JOIN escola.aluno ON escola.aluno_disciplina.aluno = escola.aluno.cpf "
 					+ "INNER JOIN escola.disciplina ON escola.aluno_disciplina.disciplina = escola.disciplina.id_disciplina "
+					+ "INNER JOIN turma ON aluno.turma = turma.id_turma "
 					+ "WHERE (aluno_disciplina.aluno = ?) " + "AND (aluno_disciplina.disciplina = ?)");
 
 			Aluno_Disciplina_PK ADPK = (Aluno_Disciplina_PK) id;
@@ -301,6 +302,7 @@ public class Aluno_DisciplinaDaoJDBC implements Dao {
 			ps = conn.prepareStatement("SELECT * "
 					+ "FROM escola.aluno_disciplina INNER JOIN escola.aluno ON escola.aluno_disciplina.aluno = escola.aluno.cpf "
 					+ "INNER JOIN escola.disciplina ON escola.aluno_disciplina.disciplina = escola.disciplina.id_disciplina "
+					+ "INNER JOIN turma ON aluno.turma = turma.id_turma "
 					+ "WHERE (aluno_disciplina.aluno = ?) AND (aluno_disciplina.ativo = 1)");
 
 			ps.setString(1, cpf);
@@ -313,11 +315,11 @@ public class Aluno_DisciplinaDaoJDBC implements Dao {
 			
 			while (rs.next()) {
 
-				Turma turma = mapTurma.get(rs.getInt("id_turma"));
+				Turma turma = mapTurma.get(rs.getInt("turma"));
 
 				if (turma == null) {
 					turma = instantiateTurma(rs);
-					mapTurma.put(rs.getInt("id_turma"), turma);
+					mapTurma.put(rs.getInt("turma"), turma);
 				}
 
 				Aluno aluno = mapAluno.get(rs.getString("cpf"));

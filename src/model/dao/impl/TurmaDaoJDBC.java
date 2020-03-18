@@ -35,33 +35,34 @@ public class TurmaDaoJDBC implements Dao {
 			if (turma2 != null) {
 				throw new DbIntegrityException("Id já inserido");
 			}
-		} else {
-			PreparedStatement ps = null;
-			try {
-				ps = conn.prepareStatement("INSERT INTO turma " + "(id_turma, turno) " + "VALUES " + "(?, ?) ",
-						Statement.RETURN_GENERATED_KEYS);
-				ps.setInt(1, turma.getId());
-				ps.setString(2, turma.getTurno());
-
-				int rowsAffected = ps.executeUpdate();
-
-				if (rowsAffected > 0) {
-					ResultSet rs = ps.getGeneratedKeys();
-					if (rs.next()) {
-						int id = rs.getInt(1);
-						turma.setId(id);
-					}
-					DB.closeResultSet(rs);
-				} else {
-					throw new DbException("Erro inesperado! Nenhuma linha foi afetada!");
-				}
-
-			} catch (SQLException e) {
-				throw new DbException(e.getMessage());
-			} finally {
-				DB.closeStatement(ps);
-			}
 		}
+
+		PreparedStatement ps = null;
+		try {
+			ps = conn.prepareStatement("INSERT INTO turma " + "(id_turma, turno) " + "VALUES " + "(?, ?) ",
+					Statement.RETURN_GENERATED_KEYS);
+			ps.setInt(1, turma.getId());
+			ps.setString(2, turma.getTurno());
+
+			int rowsAffected = ps.executeUpdate();
+
+			if (rowsAffected > 0) {
+				ResultSet rs = ps.getGeneratedKeys();
+				if (rs.next()) {
+					int id = rs.getInt(1);
+					turma.setId(id);
+				}
+				DB.closeResultSet(rs);
+			} else {
+				throw new DbException("Erro inesperado! Nenhuma linha foi afetada!");
+			}
+
+		} catch (SQLException e) {
+			throw new DbException(e.getMessage());
+		} finally {
+			DB.closeStatement(ps);
+		}
+
 	}
 
 	@Override
@@ -77,46 +78,42 @@ public class TurmaDaoJDBC implements Dao {
 		Turma turma2 = (Turma) dao.findById(turma.getId());
 		if (turma2 == null) {
 			throw new DbIntegrityException("Turma não encontrada");
-		} 
-		else {
-			try {
-				ps = conn.prepareStatement("UPDATE turma " + "SET turno = ? " + "WHERE id_turma = ?");
-
-				ps.setString(1, turma.getTurno());
-				ps.setDouble(2, turma.getId());
-
-				ps.executeUpdate();
-			} catch (SQLException e) {
-				throw new DbException(e.getMessage());
-			} finally {
-				DB.closeStatement(ps);
-			}
 		}
+		try {
+			ps = conn.prepareStatement("UPDATE turma " + "SET turno = ? " + "WHERE id_turma = ?");
+
+			ps.setString(1, turma.getTurno());
+			ps.setDouble(2, turma.getId());
+
+			ps.executeUpdate();
+		} catch (SQLException e) {
+			throw new DbException(e.getMessage());
+		} finally {
+			DB.closeStatement(ps);
+		}
+
 	}
 
 	@Override
 	public void deleteById(Object id) {
 		PreparedStatement ps = null;
-		
+
 		TurmaDaoJDBC daoTurma = DaoFactory.createTurma();
 		Turma turma = (Turma) daoTurma.findById(id);
-		
+
 		AlunoDaoJDBC daoAluno = DaoFactory.createAluno();
 		List<Bolsista> lista = daoAluno.findByTurma(turma);
-		for (Bolsista bol: lista) {
+		for (Bolsista bol : lista) {
 			daoAluno.deleteById(bol.getCpf());
 		}
 		try {
-			ps = conn.prepareStatement(
-					"DELETE FROM turma WHERE id_turma = ? ");
-			
+			ps = conn.prepareStatement("DELETE FROM turma WHERE id_turma = ? ");
+
 			ps.setInt(1, turma.getId());
 			ps.executeUpdate();
-		}
-		catch(SQLException e ) {
+		} catch (SQLException e) {
 			throw new DbException(e.getMessage());
-		}
-		finally {
+		} finally {
 			DB.closeStatement(ps);
 		}
 	}
