@@ -9,7 +9,6 @@ public class Aluno implements Serializable{
 	private Double valorMensalidade;
 	private String endereco;
 	private Double creditos;
-	private Boolean bolsista;
 	
 	private Turma turma;
 	
@@ -18,14 +17,13 @@ public class Aluno implements Serializable{
 	}
 
 	public Aluno(String cpf, String nome, Double valorMensalidade, String endereco, Double creditos,
-			Turma turma, Boolean bolsista) {
+			Turma turma) {
 
 		this.cpf = cpf;
 		this.nome = nome;
 		this.valorMensalidade = valorMensalidade;
 		this.endereco = endereco;
 		this.creditos = creditos;
-		this.bolsista = bolsista;
 		this.turma = turma;
 	}
 
@@ -76,14 +74,6 @@ public class Aluno implements Serializable{
 	public void setTurma(Turma turma) {
 		this.turma = turma;
 	}
-	
-	public Boolean getBolsista() {
-		return bolsista;
-	}
-	
-	public void setBolsista(Boolean bolsista) {
-		this.bolsista = bolsista;
-	}
 
 	@Override
 	public int hashCode() {
@@ -113,6 +103,6 @@ public class Aluno implements Serializable{
 	@Override
 	public String toString() {
 		return "Aluno [cpf=" + cpf + ", nome=" + nome + ", valorMensalidade=" + valorMensalidade + ", endereco="
-				+ endereco + ", creditos=" + creditos + ", bolsista=" + bolsista + ", turma=" + turma + "]";
+				+ endereco + ", creditos=" + creditos + ", turma=" + turma + "]";
 	}
 }

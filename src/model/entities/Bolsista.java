@@ -9,8 +9,8 @@ public class Bolsista extends Aluno{
 	}
 
 	public Bolsista(String cpf, String nome, Double valorMensalidade, String endereco, Double creditos, Turma turma,
-			String tipoBolsa, Boolean bolsista) {
-		super(cpf, nome, valorMensalidade, endereco, creditos, turma, bolsista);
+			String tipoBolsa) {
+		super(cpf, nome, valorMensalidade, endereco, creditos, turma);
 		this.tipoBolsa = tipoBolsa;
 	}
 
