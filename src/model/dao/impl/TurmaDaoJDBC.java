@@ -13,6 +13,7 @@ import db.DbException;
 import db.DbIntegrityException;
 import model.dao.Dao;
 import model.dao.DaoFactory;
+import model.entities.Bolsista;
 import model.entities.Turma;
 
 public class TurmaDaoJDBC implements Dao {
@@ -95,8 +96,29 @@ public class TurmaDaoJDBC implements Dao {
 
 	@Override
 	public void deleteById(Object id) {
-		// TODO Auto-generated method stub
-
+		PreparedStatement ps = null;
+		
+		TurmaDaoJDBC daoTurma = DaoFactory.createTurma();
+		Turma turma = (Turma) daoTurma.findById(id);
+		
+		AlunoDaoJDBC daoAluno = DaoFactory.createAluno();
+		List<Bolsista> lista = daoAluno.findByTurma(turma);
+		for (Bolsista bol: lista) {
+			daoAluno.deleteById(bol.getCpf());
+		}
+		try {
+			ps = conn.prepareStatement(
+					"DELETE FROM turma WHERE id_turma = ? ");
+			
+			ps.setInt(1, turma.getId());
+			ps.executeUpdate();
+		}
+		catch(SQLException e ) {
+			throw new DbException(e.getMessage());
+		}
+		finally {
+			DB.closeStatement(ps);
+		}
 	}
 
 	@Override

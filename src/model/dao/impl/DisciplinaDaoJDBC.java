@@ -28,25 +28,22 @@ public class DisciplinaDaoJDBC implements Dao {
 	@Override
 	public void insert(Object obj) {
 		Disciplina disciplina = (Disciplina) obj;
-		
-		if(disciplina.getCreditos() < 0) {
+
+		if (disciplina.getCreditos() < 0) {
 			throw new DbException("Créditos não podem ser negativos");
-		}
-		else if (disciplina.getNome().isBlank()) {
+		} else if (disciplina.getNome().isBlank()) {
 			throw new DbException("A disciplina precisa de um nome");
-		}
-		else if(disciplina.getId() != null) {
+		} else if (disciplina.getId() != null) {
 			DisciplinaDaoJDBC dao = DaoFactory.createDisciplina();
 			Disciplina disciplina2 = (Disciplina) dao.findById(disciplina.getId());
-			if(disciplina2 != null) {
+			if (disciplina2 != null) {
 				throw new DbIntegrityException("Id já inserido");
 			}
-		}
-		else {
+		} else {
 			PreparedStatement ps = null;
 			try {
-				ps = conn.prepareStatement("INSERT INTO disciplina " + "(id_disciplina, nome, creditos) "
-			+ "VALUES " + "(?, ?, ?) ",
+				ps = conn.prepareStatement(
+						"INSERT INTO disciplina " + "(id_disciplina, nome, creditos) " + "VALUES " + "(?, ?, ?) ",
 						Statement.RETURN_GENERATED_KEYS);
 				ps.setInt(1, disciplina.getId());
 				ps.setString(2, disciplina.getNome());
@@ -79,45 +76,43 @@ public class DisciplinaDaoJDBC implements Dao {
 		Disciplina disciplina = (Disciplina) obj;
 		PreparedStatement ps = null;
 
-		if(disciplina.getCreditos()< 0 || disciplina.getCreditos() > 15) {
+		if (disciplina.getCreditos() < 0 || disciplina.getCreditos() > 15) {
 			throw new DbIntegrityException("Quantidade de créditos inválida (créditos devem ter valor entre 0 e 15)");
 		}
 
-		if(disciplina.getNome().isBlank()) {
+		if (disciplina.getNome().isBlank()) {
 			throw new DbIntegrityException("A disciplina deve possuir um nome");
 		}
-		
+
 		DisciplinaDaoJDBC dao = DaoFactory.createDisciplina();
 		Disciplina disciplina2 = (Disciplina) dao.findById(disciplina.getId());
 		if (disciplina2 == null) {
 			throw new DbIntegrityException("Disciplina não encontrada");
-		} 
-		else {
+		} else {
 			try {
-				ps = conn.prepareStatement("UPDATE disciplina "
-						+ "SET creditos = ?, nome = ? "
-						+ "WHERE id_disciplina = ?");
+				ps = conn.prepareStatement(
+						"UPDATE disciplina " + "SET creditos = ?, nome = ? " + "WHERE id_disciplina = ?");
 
 				ps.setDouble(1, disciplina.getCreditos());
 				ps.setString(2, disciplina.getNome());
 				ps.setInt(3, disciplina.getId());
 
 				ps.executeUpdate();
-				
+
 				Aluno_DisciplinaDaoJDBC dao2 = DaoFactory.createAluno_Disciplina();
 				List<Object> alunosDisciplinas = dao2.findAll();
 				Iterator<Object> ite = alunosDisciplinas.iterator();
-				while(ite.hasNext()) {
+				while (ite.hasNext()) {
 					Aluno_Disciplina aux = (Aluno_Disciplina) ite.next();
-					if(aux.getAtivo()) {
-						
+					if (aux.getAtivo()) {
+
 						AlunoDaoJDBC daoAluno = DaoFactory.createAluno();
 						Bolsista bol = (Bolsista) daoAluno.findById(aux.getAluno().getCpf());
 						Double diferencaCreditos = (disciplina2.getCreditos() - disciplina.getCreditos());
 						daoAluno.updateCreditos(bol, bol.getCreditos() + diferencaCreditos);
 					}
 				}
-				
+
 			} catch (SQLException e) {
 				throw new DbException(e.getMessage());
 			} finally {
@@ -129,7 +124,27 @@ public class DisciplinaDaoJDBC implements Dao {
 
 	@Override
 	public void deleteById(Object id) {
-		// TODO Auto-generated method stub
+		PreparedStatement ps = null;
+
+		DisciplinaDaoJDBC daoDisciplina = DaoFactory.createDisciplina();
+		Disciplina disciplina = (Disciplina) daoDisciplina.findById(id);
+
+		Aluno_DisciplinaDaoJDBC daoAlunoDisciplina = DaoFactory.createAluno_Disciplina();
+		List<Aluno_Disciplina> lista = daoAlunoDisciplina.findByDisciplina(disciplina.getId());
+		for (Aluno_Disciplina alunoDisciplina : lista) {
+			Aluno_Disciplina AL = new Aluno_Disciplina(alunoDisciplina.getAluno(), alunoDisciplina.getDisciplina(), false);
+			daoAlunoDisciplina.update(AL);
+		}
+		try {
+			ps = conn.prepareStatement("DELETE FROM disciplina WHERE id_disciplina = ? ");
+
+			ps.setInt(1, disciplina.getId());
+			ps.executeUpdate();
+		} catch (SQLException e) {
+			throw new DbException(e.getMessage());
+		} finally {
+			DB.closeStatement(ps);
+		}
 
 	}
 

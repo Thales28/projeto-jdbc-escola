@@ -15,6 +15,8 @@ import db.DbException;
 import db.DbIntegrityException;
 import model.dao.Dao;
 import model.dao.DaoFactory;
+import model.entities.Aluno;
+import model.entities.Aluno_Disciplina;
 import model.entities.Bolsista;
 import model.entities.Turma;
 
@@ -67,7 +69,7 @@ public class AlunoDaoJDBC implements Dao {
 			throw new DbException("Mensalidade negativa");
 		}
 		
-		else if (bolsista.getTipoBolsa().isBlank() && bolsista.getValorMensalidade() == 0) {
+		else if ((bolsista.getTipoBolsa().isBlank() || bolsista.getTipoBolsa() == "NÃO") && bolsista.getValorMensalidade() == 0) {
 			bolsista.setTipoBolsa("SIM");
 		}
 		
@@ -114,8 +116,12 @@ public class AlunoDaoJDBC implements Dao {
 			throw new DbException("CPF inválido");
 		}
 		
-		else if(creditos < 0 || creditos > 15) {
+		else if(creditos < 0) {
 			throw new DbException("quantidade de créditos inválida (o valor dos créditos deve ser entre 0 e 15");
+		}
+		
+		else if (creditos > 15) {
+			creditos = 15.00;
 		}
 		
 		AlunoDaoJDBC dao = DaoFactory.createAluno();
@@ -181,7 +187,7 @@ public class AlunoDaoJDBC implements Dao {
 			}
 		}
 		
-		if(bolsista.getTipoBolsa().isBlank() && bolsista.getValorMensalidade() == 0) {
+		if ((bolsista.getTipoBolsa().isBlank() || bolsista.getTipoBolsa() == "NÃO") && bolsista.getValorMensalidade() == 0) {
 			bolsista.setTipoBolsa("SIM");
 		}
 		
@@ -211,8 +217,27 @@ public class AlunoDaoJDBC implements Dao {
 
 	@Override
 	public void deleteById(Object id) {
-		// TODO Auto-generated method stub
+		PreparedStatement ps = null;
 
+		AlunoDaoJDBC daoAluno = DaoFactory.createAluno();
+		Aluno aluno = (Aluno) daoAluno.findById(id);
+
+		Aluno_DisciplinaDaoJDBC daoAlunoDisciplina = DaoFactory.createAluno_Disciplina();
+		List<Aluno_Disciplina> lista = daoAlunoDisciplina.findByAluno(aluno.getCpf());
+		for (Aluno_Disciplina alunoDisciplina : lista) {
+			Aluno_Disciplina AL = new Aluno_Disciplina(alunoDisciplina.getAluno(), alunoDisciplina.getDisciplina(), false);
+			daoAlunoDisciplina.update(AL);
+		}
+		try {
+			ps = conn.prepareStatement("DELETE FROM aluno WHERE cpf = ? ");
+
+			ps.setString(1, aluno.getCpf());
+			ps.executeUpdate();
+		} catch (SQLException e) {
+			throw new DbException(e.getMessage());
+		} finally {
+			DB.closeStatement(ps);
+		}
 	}
 
 	@Override

@@ -136,7 +136,31 @@ public class Aluno_DisciplinaDaoJDBC implements Dao {
 
 	@Override
 	public void deleteById(Object id) {
-		// TODO Auto-generated method stub
+		PreparedStatement ps = null;
+
+		Aluno_DisciplinaDaoJDBC daoAlunoDisciplina = DaoFactory.createAluno_Disciplina();
+		Aluno_Disciplina alunoDisciplina = (Aluno_Disciplina) daoAlunoDisciplina.findById(id);
+		if(alunoDisciplina.getAtivo()) {
+			AlunoDaoJDBC daoAluno = DaoFactory.createAluno();
+			Bolsista aluno = (Bolsista) daoAluno.findById(alunoDisciplina.getAluno().getCpf());
+			
+			DisciplinaDaoJDBC daoDisciplina = DaoFactory.createDisciplina();
+			Disciplina disciplina = (Disciplina) daoDisciplina.findById(alunoDisciplina.getDisciplina().getId());
+			
+			daoAluno.updateCreditos(aluno, aluno.getCreditos() + disciplina.getCreditos());
+		}
+		try {
+			ps = conn.prepareStatement("DELETE FROM aluno_disciplina WHERE aluno = ? AND disciplina = ? ");
+
+			ps.setString(1, alunoDisciplina.getAluno().getCpf());
+			ps.setInt(2, alunoDisciplina.getDisciplina().getId());
+			ps.executeUpdate();
+			
+		} catch (SQLException e) {
+			throw new DbException(e.getMessage());
+		} finally {
+			DB.closeStatement(ps);
+		}
 
 	}
 
@@ -269,5 +293,115 @@ public class Aluno_DisciplinaDaoJDBC implements Dao {
 			DB.closeResultSet(rs);
 		}
 	}
+	
+	public List<Aluno_Disciplina> findByAluno(String cpf) {
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		try {
+			ps = conn.prepareStatement("SELECT * "
+					+ "FROM escola.aluno_disciplina INNER JOIN escola.aluno ON escola.aluno_disciplina.aluno = escola.aluno.cpf "
+					+ "INNER JOIN escola.disciplina ON escola.aluno_disciplina.disciplina = escola.disciplina.id_disciplina "
+					+ "WHERE (aluno_disciplina.aluno = ?) AND (aluno_disciplina.ativo = 1)");
 
+			ps.setString(1, cpf);
+			rs = ps.executeQuery();
+			
+			Map<Integer, Turma> mapTurma = new HashMap<>();
+			Map<String, Aluno> mapAluno = new HashMap<>();
+			Map<Integer, Disciplina> mapDisciplina = new HashMap<>();
+			List<Aluno_Disciplina> alunosDisciplinas = new ArrayList<>();
+			
+			while (rs.next()) {
+
+				Turma turma = mapTurma.get(rs.getInt("id_turma"));
+
+				if (turma == null) {
+					turma = instantiateTurma(rs);
+					mapTurma.put(rs.getInt("id_turma"), turma);
+				}
+
+				Aluno aluno = mapAluno.get(rs.getString("cpf"));
+
+				if (aluno == null) {
+					aluno = instantiateAluno(rs, turma);
+					mapAluno.put(rs.getString("cpf"), aluno);
+				}
+
+				Disciplina disciplina = mapDisciplina.get(rs.getInt("id_disciplina"));
+
+				if (disciplina == null) {
+					disciplina = instantiateDisciplina(rs);
+					mapDisciplina.put(rs.getInt("id_disciplina"), disciplina);
+				}
+
+				Aluno_Disciplina alunoDisciplina = instantiateAlunoDisciplina(rs, aluno, disciplina);
+				alunosDisciplinas.add(alunoDisciplina);
+
+			}
+			return alunosDisciplinas;
+
+		}
+
+		catch (SQLException e) {
+			throw new DbException(e.getMessage());
+		} finally {
+			DB.closeStatement(ps);
+			DB.closeResultSet(rs);
+		}
+	}
+	public List<Aluno_Disciplina> findByDisciplina(Integer id_disciplina) {
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		try {
+			ps = conn.prepareStatement("SELECT * "
+					+ "FROM escola.aluno_disciplina INNER JOIN escola.aluno ON escola.aluno_disciplina.aluno = escola.aluno.cpf "
+					+ "INNER JOIN escola.disciplina ON escola.aluno_disciplina.disciplina = escola.disciplina.id_disciplina "
+					+ "WHERE (aluno_disciplina.disciplina = ?) AND (aluno_disciplina.ativo = 1)");
+
+			ps.setInt(1, id_disciplina);
+			rs = ps.executeQuery();
+			
+			Map<Integer, Turma> mapTurma = new HashMap<>();
+			Map<String, Aluno> mapAluno = new HashMap<>();
+			Map<Integer, Disciplina> mapDisciplina = new HashMap<>();
+			List<Aluno_Disciplina> alunosDisciplinas = new ArrayList<>();
+			
+			while (rs.next()) {
+
+				Turma turma = mapTurma.get(rs.getInt("id_turma"));
+
+				if (turma == null) {
+					turma = instantiateTurma(rs);
+					mapTurma.put(rs.getInt("id_turma"), turma);
+				}
+
+				Aluno aluno = mapAluno.get(rs.getString("cpf"));
+
+				if (aluno == null) {
+					aluno = instantiateAluno(rs, turma);
+					mapAluno.put(rs.getString("cpf"), aluno);
+				}
+
+				Disciplina disciplina = mapDisciplina.get(rs.getInt("id_disciplina"));
+
+				if (disciplina == null) {
+					disciplina = instantiateDisciplina(rs);
+					mapDisciplina.put(rs.getInt("id_disciplina"), disciplina);
+				}
+
+				Aluno_Disciplina alunoDisciplina = instantiateAlunoDisciplina(rs, aluno, disciplina);
+				alunosDisciplinas.add(alunoDisciplina);
+
+			}
+			return alunosDisciplinas;
+
+		}
+
+		catch (SQLException e) {
+			throw new DbException(e.getMessage());
+		} finally {
+			DB.closeStatement(ps);
+			DB.closeResultSet(rs);
+		}
+	}
 }
